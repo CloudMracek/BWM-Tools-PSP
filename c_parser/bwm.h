@@ -1,48 +1,44 @@
 #pragma once
 
-#ifndef BWM_H
-#define BWM_H
-
-#include "psxgte.h"
-
-typedef const uint32_t *BWM_Model;
+typedef struct {
+    unsigned int faces_num, vertex_count, uv_count, normal_count;
+} BWM_Header;
 
 typedef struct {
-    int v0,v1,v2,v3;
-} BWM_FACE;
+    unsigned int vertex_color;
+    float x,y,z;
+} BWM_Vertex;
 
-// Returns the face count of the model
-int bwm_get_face_count(BWM_Model *data);
+typedef struct {
+    unsigned int v0,v1,v2;
+} BWM_VertexIndice;
 
-// Returns the vertex count of the model
-int bwm_get_vertex_count(BWM_Model *data);
-// Returns a vertex with the index of 'i'
-VECTOR bwm_get_vertex(BWM_Model *data, int i);
+typedef struct {
+    float u,v;
+} BWM_UV;
 
-// Returns the vertex indice count (In number of faces so it does the same thing as bwm_get_face_count)
-int bwm_get_vertex_index_count(BWM_Model *data);
-// Returns a BWM_FACE which contains 4 vertex indicies for the indexed quad.
-BWM_FACE bwm_get_face_vertex_indices(BWM_Model *data, int i);
+typedef struct {
+    unsigned int v0,v1,v2;
+} BWM_UVIndice;
 
-// Returns the uv count of the model
-int bwm_get_uv_count(BWM_Model *data);
-// Returns a uv with the index of 'i'
-VECTOR bwm_get_uv(BWM_Model *data, int i);
+typedef struct {
+    float x,y,z;
+} BWM_Normal;
 
-// Returns the uv index count of the model
-int bwm_get_uv_index_count(BWM_Model *data);
-// Returns a BWM_FACE which contains 4 uv indicies for the indexed quad.
-BWM_FACE bwm_get_face_uv_indices(BWM_Model *data, int i);
+typedef struct {
+    unsigned int v0,v1,v2;
+} BWM_NormalIndice;
 
-// Returns the normal count of the model
-int bwm_get_normal_count(BWM_Model *data);
-// Returns a normal with the index of 'i'
-VECTOR bwm_get_normal(BWM_Model *data, int i);
+BWM_Header *bwm_header(void *data);
 
-// Returns the normal index count of the model
-int bwm_get_normal_index_count(BWM_Model *data);
-// Returns a BWM_FACE which contains 4 normal indicies for the indexed quad.
-BWM_FACE bwm_get_face_normal_indices(BWM_Model *data, int i);
+BWM_Vertex *bwm_vertices(void *data);
 
-#endif
+BWM_VertexIndice *bwm_vertex_indices(void *data);
 
+BWM_UV *bwm_uvs(void *data);
+
+BWM_UVIndice *bwm_uv_indices(void *data);
+
+BWM_Normal *bwm_normals(void *data);
+
+BWM_NormalIndice *bwm_normal_indices(void *data);

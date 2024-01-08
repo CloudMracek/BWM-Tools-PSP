@@ -1,70 +1,55 @@
 #include "bwm.h"
 
-int bwm_get_face_count(BWM_Model *data) {
-	return data[0];
+BWM_Header* bwm_header(void *data) {
+	return (BWM_Header*) data;
 }
 
-int bwm_get_vertex_count(BWM_Model *data) {
-	return data[1];
+BWM_Vertex* bwm_vertices(void *data) {
+	return (BWM_Vertex*) (data+sizeof(BWM_Header));
 }
 
-VECTOR bwm_get_vertex(BWM_Model *data, int i) {
-	int start = 2+(i*3);
-	VECTOR final = {data[start],data[start+1],data[start+2]};
-	return final;
+BWM_VertexIndice* bwm_vertex_indices(void *data) {
+	BWM_Header* header = data;
+	return (BWM_VertexIndice*) (data
+		+sizeof(BWM_Header)
+		+(sizeof(BWM_Vertex)*header->vertex_count));
 }
 
-int bwm_get_vertex_index_count(BWM_Model *data) {
-	int start = 2+bwm_get_vertex_count(data)*3;
-	return data[start];
+BWM_UV* bwm_uvs(void *data) {
+	BWM_Header* header = data;
+	return (BWM_UV*) (data
+		+sizeof(BWM_Header)
+		+(sizeof(BWM_Vertex)*header->vertex_count)
+		+(sizeof(BWM_VertexIndice)*header->faces_num));
 }
 
-BWM_FACE bwm_get_face_vertex_indices(BWM_Model *data, int i) {
-    int start = 3+bwm_get_vertex_count(data)*3 + i*4;
-	BWM_FACE final = {data[start],data[start+1],data[start+2],data[start+3]};
-    return final;
+BWM_UVIndice* bwm_uv_indices(void *data) {
+	BWM_Header* header = data;
+	return (BWM_UVIndice*) (data
+		+sizeof(BWM_Header)
+		+(sizeof(BWM_Vertex)*header->vertex_count)
+		+(sizeof(BWM_VertexIndice)*header->faces_num)
+		+(sizeof(BWM_UV)*header->uv_count));
 }
 
-int bwm_get_uv_count(BWM_Model *data) {
-	int start = 3+bwm_get_vertex_count(data)*3 + bwm_get_vertex_index_count(data)*4;
-    return data[start];
+BWM_Normal* bwm_normals(void *data) {
+	BWM_Header* header = data;
+	return (BWM_Normal*) (data
+		+sizeof(BWM_Header)
+		+(sizeof(BWM_Vertex)*header->vertex_count)
+		+(sizeof(BWM_VertexIndice)*header->faces_num)
+		+(sizeof(BWM_UV)*header->uv_count)
+		+(sizeof(BWM_NormalIndice)*header->faces_num));
 }
 
-VECTOR bwm_get_uv(BWM_Model *data, int i) {
-	int start = 4+bwm_get_vertex_count(data)*3 + bwm_get_vertex_index_count(data)*4 + i*2;
-	VECTOR final = {data[start],data[start+1],0};
-	return final;
+BWM_NormalIndice* bwm_normal_indices(void *data) {
+	BWM_Header* header = data;
+	return (BWM_NormalIndice*) (data
+		+sizeof(BWM_Header)
+		+(sizeof(BWM_Vertex)*header->vertex_count)
+		+(sizeof(BWM_VertexIndice)*header->faces_num)
+		+(sizeof(BWM_UV)*header->uv_count)
+		+(sizeof(BWM_NormalIndice)*header->faces_num)
+		+(sizeof(BWM_Normal)*header->normal_count));
 }
 
-int bwm_get_uv_index_count(BWM_Model *data) {
-	int start = 4+bwm_get_vertex_count(data)*3 + bwm_get_vertex_index_count(data)*4 + bwm_get_uv_count(data)*2;
-	return data[start];
-}
-
-BWM_FACE bwm_get_face_uv_indices(BWM_Model *data, int i) {
-    int start = 5+bwm_get_vertex_count(data)*3 + bwm_get_vertex_index_count(data)*4 + bwm_get_uv_count(data)*2 + i*4;
-	BWM_FACE final = {data[start],data[start+1],data[start+2], data[start+3]};
-    return final;
-}
-
-int bwm_get_normal_count(BWM_Model *data) {
-	int start = 5+bwm_get_vertex_count(data)*3 + bwm_get_vertex_index_count(data)*4 + bwm_get_uv_count(data)*2 + bwm_get_uv_index_count(data)*4;
-    return data[start];
-}
-
-VECTOR bwm_get_normal(BWM_Model *data, int i) {
-	int start = 6+bwm_get_vertex_count(data)*3 + bwm_get_vertex_index_count(data)*4 + bwm_get_uv_count(data)*2 + bwm_get_uv_index_count(data)*4 + i*3;
-	VECTOR final = {data[start],data[start+1],data[start+2]};
-	return final;
-}
-
-int bwm_get_normal_index_count(BWM_Model *data) {
-	int start = 6+bwm_get_vertex_count(data)*3 + bwm_get_vertex_index_count(data)*4 + bwm_get_uv_count(data)*2 + bwm_get_uv_index_count(data)*4 + bwm_get_normal_count(data)*3;
-    return data[start];
-}
-
-BWM_FACE bwm_get_face_normal_indices(BWM_Model *data, int i) {
-	int start = 7+bwm_get_vertex_count(data)*3 + bwm_get_vertex_index_count(data)*4 + bwm_get_uv_count(data)*2 + bwm_get_uv_index_count(data)*4 + bwm_get_normal_count(data)*3 + i*4;
-	BWM_FACE final = {data[start],data[start+1],data[start+2],data[start+3]};
-    return final;
-}
