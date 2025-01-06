@@ -5,9 +5,10 @@ import struct
 from os.path import exists
 import os
 
-def pack_int_number(num):
-    int_to_four_bytes = struct.Struct('<i').pack
+def pack_short_number(num):
+    int_to_four_bytes = struct.Struct('<H').pack
     return int_to_four_bytes(num)
+
 
 def pack_uint_number(num):
     int_to_four_bytes = struct.Struct('<I').pack
@@ -78,7 +79,7 @@ if __name__ == '__main__':
             if(v < 0):
                 v = 0
             
-            uvs.append([u,v])
+            uvs.append([round(u,2),round(v,2)])
         
         elif operation == "vn":
             x = float(data[1])
@@ -91,61 +92,69 @@ if __name__ == '__main__':
             v1 = data[2].split("/")
             v2 = data[3].split("/")
 
-            vi_0 = int(v0[0])
+            vi_2 = int(v0[0])
             vi_1 = int(v1[0])
-            vi_2 = int(v2[0])
+            vi_0 = int(v2[0])
             
             
-            ui_0 = int(v0[1])
+            ui_2 = int(v0[1])
             ui_1 = int(v1[1])
-            ui_2 = int(v2[1])
+            ui_0 = int(v2[1])
             
-            ni_0 = int(v0[2])
+            ni_2 = int(v0[2])
             ni_1 = int(v1[2])
-            ni_2 = int(v2[2])
+            ni_0 = int(v2[2])
 
-            uv_indices.append([ui_0-1, ui_1-1, ui_2-1])
-            vertex_indices.append([vi_0-1, vi_1-1, vi_2-1])
-            normal_indices.append([ni_0-1, ni_1-1, ni_2-1])
+            uv_indices.append(ui_0-1)
+            uv_indices.append(ui_1-1)
+            uv_indices.append(ui_2-1)
+
+            vertex_indices.append(vi_0-1)
+            vertex_indices.append(vi_1-1)
+            vertex_indices.append(vi_2-1)
+            
+            normal_indices.append(ni_0-1)
+            normal_indices.append(ni_1-1)
+            normal_indices.append(ni_2-1)
             num_faces += 1
     
+
+    combined_data = []
+    unique_data_map = {}
+    new_indices = []
+
+    # Combine vertices and uvs into a single array
+    for vertex_index, uv_index, normal_index in zip(vertex_indices, uv_indices, normal_indices):
+        vertex_uv_pair = tuple(uvs[uv_index] + [0xffffffff] + normals[normal_index] + vertices[vertex_index]) 
+        if vertex_uv_pair not in unique_data_map:
+            unique_data_map[vertex_uv_pair] = len(unique_data_map)
+            combined_data.extend(vertex_uv_pair)
+
+        new_indices.append(unique_data_map[vertex_uv_pair])
+    formatted_combined_data = [tuple(combined_data[i:i+9]) for i in range(0, len(combined_data), 9)]
+    for data in formatted_combined_data:
+        print(f"U: {data[0]}, V: {data[1]}, 0xffffffff, NX: {data[3]}, NY: {data[4]}, NZ: {data[5]}, X: {data[6]}, Y: {data[7]}, Z: {data[8]}")
+        
+
+
     bwm_file.write(pack_uint_number(num_faces))
-    bwm_file.write(pack_uint_number(len(vertices)))
-    bwm_file.write(pack_uint_number(len(uvs)))
-    bwm_file.write(pack_uint_number(len(normals)))
+    bwm_file.write(pack_uint_number(len(formatted_combined_data)))
 
-    for vertex in vertices:
-        bwm_file.write(pack_uint_number(0xFFFFFFFF))
-        for coord in vertex:
-            bwm_file.write(pack_float_number(coord))
-
-    for face in vertex_indices:
-        for indice in face:
-            bwm_file.write(pack_uint_number(indice))
-
-    for uv in uvs:
-        for coord in uv:
-            bwm_file.write(pack_float_number(coord))
+    for vertex in formatted_combined_data:
+        for byte in vertex:
+            if not isinstance(byte, float):
+                bwm_file.write(pack_uint_number(byte))
+            else:
+                bwm_file.write(pack_float_number(byte))
     
-    for face in uv_indices:
-        for indice in face:
-            bwm_file.write(pack_uint_number(indice))
+    for byte in new_indices:
+        bwm_file.write(pack_short_number(byte))
     
-    for normal in normals:
-        for coord in normal:
-            bwm_file.write(pack_float_number(coord))
-
-    for face in normal_indices:
-        for indice in face:
-            bwm_file.write(pack_uint_number(indice))
-
     bwm_file.close()
 
     print("The file:",args.output_file, "was successfully written")
-    print("Vertex count:", len(vertices))
-    print("Vertex indices count:", len(vertex_indices))
-    print("UV count:", len(uvs))
-    print("UV indices count:", len(uv_indices))
-    print("Normal count:", len(normals))
-    print("Normal indices count:", len(normal_indices))
+    print("Vertex count:", len(formatted_combined_data))
+    print("Vertex indices count:", len(new_indices))
+    print("Face cout:" , num_faces)
+
 
